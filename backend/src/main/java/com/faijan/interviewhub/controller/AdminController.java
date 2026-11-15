@@ -1,0 +1,9 @@
+package com.faijan.interviewhub.controller;
+import com.faijan.interviewhub.dto.AdminOverview;import com.faijan.interviewhub.dto.AdminQuestionView;import com.faijan.interviewhub.dto.BulkQuestionRequest;import com.faijan.interviewhub.dto.QuestionRequest;import com.faijan.interviewhub.entity.Question;import com.faijan.interviewhub.service.QuestionService;import jakarta.validation.Valid;import com.faijan.interviewhub.repository.*;import org.springframework.http.HttpStatus;import org.springframework.web.server.ResponseStatusException;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/admin") public class AdminController {
+ private final QuestionService questionService;private final QuestionRepository questions;private final UserRepository users;private final PracticeAttemptRepository attempts;private final QuestionBookmarkRepository bookmarks;
+ public AdminController(QuestionRepository q,UserRepository u,PracticeAttemptRepository a,QuestionBookmarkRepository b,QuestionService service){questions=q;users=u;attempts=a;bookmarks=b;questionService=service;}
+ @GetMapping("/overview") public AdminOverview overview(){return new AdminOverview(questions.countByActiveTrue(),users.count(),attempts.count(),bookmarks.count());}
+ @PostMapping("/questions/bulk") @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.CREATED) public java.util.List<Question> bulk(@Valid @org.springframework.web.bind.annotation.RequestBody BulkQuestionRequest request){return questionService.createAll(request.questions());}
+ @GetMapping("/questions/{id}") public AdminQuestionView question(@org.springframework.web.bind.annotation.PathVariable Long id){return AdminQuestionView.from(questions.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Question not found")));}
+}
